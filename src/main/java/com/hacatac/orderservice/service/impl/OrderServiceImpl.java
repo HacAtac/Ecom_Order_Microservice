@@ -1,6 +1,7 @@
 package com.hacatac.orderservice.service.impl;
 
 import com.hacatac.orderservice.entity.Order;
+import com.hacatac.orderservice.external.client.ProductService;
 import com.hacatac.orderservice.model.request.OrderRequest;
 import com.hacatac.orderservice.repository.OrderRepository;
 import com.hacatac.orderservice.service.OrderService;
@@ -16,6 +17,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private OrderRepository orderRepository;
+    @Autowired
+    private ProductService productService;
 
     @Override
     public long placeOrder(OrderRequest orderRequest) {
@@ -24,6 +27,11 @@ public class OrderServiceImpl implements OrderService {
         //Payment Service -> Payments -> Success -> COMPLETE, ELse -> CANCELLED
 
         log.info("Placing Order Request: {}", orderRequest);
+
+        //call product microservice to reduce the quantity
+        productService.reduceQuantity(orderRequest.getProductId(), orderRequest.getQuantity());
+
+        log.info("Product Quantity Reduced Successfully for Product Id: {}", orderRequest.getProductId());
 
         Order order = Order.builder()
                 .amount(orderRequest.getTotalAmount())
